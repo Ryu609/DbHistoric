@@ -55,8 +55,10 @@ namespace HistoricApp
                 var originalUser = group.FirstOrDefault(i => i.User.UserId == originalEntry.HeaderId).User;
                 var originalDepartment =
                     group.FirstOrDefault(i => i.Department.DepartmentId == originalEntry.HeaderId).Department;
+
                 var EntryHistory = new HistoryViewModel()
                 {
+                    EntryId = originalEntry.EntryId,
                     DateCreated = originalEntry.DateCreated,
                     CreatedById = originalEntry.CreatedById
                 };
@@ -64,30 +66,86 @@ namespace HistoricApp
                 var modifications = new List<ModificationViewModel>();
                 foreach (var myEntry in group.Select(s => s.Entry).OrderBy(s => s.HeaderId).Skip(1))
                 {
+                    
                     var myUser = group.FirstOrDefault(u => u.User.UserId == myEntry.HeaderId).User;
                     var myDepartment = group.FirstOrDefault(u => u.Department.DepartmentId == myEntry.HeaderId).Department;
+                    var entryModifs = CompareProperties(originalEntry, myEntry);
+                    var userModifs = CompareProperties(originalUser, myUser);
+                    var departmentModifs = CompareProperties(originalDepartment, myDepartment);
+                    modifications.AddRange(entryModifs.Select(i => new ModificationViewModel()
+                    {
+                        NewValue = i.NewValue,
+                        OldValue = i.OldValue,
+                        ColumnModified = i.PropertyName,
+                        DateModified = myEntry.DateUpdated.Value,
+                        ModifiedById = myEntry.UpdatedById.Value
+                    }));
+                    modifications.AddRange(userModifs.Select(i => new ModificationViewModel()
+                    {
+                        NewValue = i.NewValue,
+                        OldValue = i.OldValue,
+                        ColumnModified = i.PropertyName,
+                        DateModified = myEntry.DateUpdated.Value,
+                        ModifiedById = myEntry.UpdatedById.Value
+                    }));
+                    modifications.AddRange(departmentModifs.Select(i => new ModificationViewModel()
+                    {
+                        NewValue = i.NewValue,
+                        OldValue = i.OldValue,
+                        ColumnModified = i.PropertyName,
+                        DateModified = myEntry.DateUpdated.Value,
+                        ModifiedById = myEntry.UpdatedById.Value
+                    }));
+
+                    EntryHistory.Modifications = modifications;
+                    originalEntry = myEntry;
+                    originalDepartment = myDepartment;
+                    originalUser = myUser;
+                }
+
+                Console.WriteLine(EntryHistory.EntryId);
+                Console.WriteLine(EntryHistory.DateCreated);
+                Console.WriteLine(EntryHistory.CreatedById);
+                if(EntryHistory.Modifications == null)
+                    Console.WriteLine("No Modification made to object");
+                else
+                {
+                    foreach (var modifs in EntryHistory.Modifications)
+                    {
+                        Console.WriteLine(modifs.DateModified);
+                        Console.WriteLine(modifs.ModifiedById);
+                        Console.WriteLine(modifs.ColumnModified);
+                        Console.WriteLine(modifs.OldValue);
+                        Console.WriteLine(modifs.NewValue);
+                    }
                 }
             }
             Console.ReadLine();
         }
 
-        public static Dictionary<string, string> CompareProperties<T>(T original, T modified) where T : class
+        public static List<Modifs> CompareProperties<T>(T original, T modified) where T : class
         {
-            Dictionary<string, string> modifs = new Dictionary<string, string>();
+            var modifs = new List<Modifs>();
             if (original != null && modified != null)
             {
                 Type type = typeof (T);
                 foreach (
                     System.Reflection.PropertyInfo pi in
-                        type.GetProperties(System.Reflection.BindingFlags.Public))
+                        type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
                 {
 
                     object originalValue = type.GetProperty(pi.Name).GetValue(original,null);
                     object modifiedValue = type.GetProperty(pi.Name).GetValue(modified, null);
 
-                    if (originalValue != modifiedValue && (originalValue == null || !modifiedValue.Equals(modifiedValue)))
+                    if (originalValue != modifiedValue || (originalValue == null ^ modifiedValue == null ))
                     {
-                        modifs.Add(type.GetProperty(pi.Name).ToString(), modifiedValue.ToString());
+                        modifs.Add( new Modifs()
+                        {
+                         PropertyName   = pi.Name,
+                         OldValue = originalValue?.ToString(),
+                         NewValue = modifiedValue?.ToString()
+
+                        });
                     }
 
                 }
@@ -98,10 +156,17 @@ namespace HistoricApp
         }
     }
 
-        
+    public class Modifs
+    {
+        public string PropertyName { get; set; }
+        public string OldValue { get; set; }
+        public string NewValue { get; set; }
+
+    }
 
     public class HistoryViewModel
     {
+        public int EntryId { get; set; }
         public DateTime DateCreated { get; set; }
         public int CreatedById { get; set; }
         public List<ModificationViewModel> Modifications { get; set; }
