@@ -1,0 +1,6 @@
+C:\Workspace\FoodDelivery\HistoricApp\HistoricApp\bin\Debug\HistoricApp.exe.config
+C:\Workspace\FoodDelivery\HistoricApp\HistoricApp\bin\Debug\HistoricApp.exe
+C:\Workspace\FoodDelivery\HistoricApp\HistoricApp\bin\Debug\HistoricApp.pdb
+C:\Workspace\FoodDelivery\HistoricApp\HistoricApp\obj\Debug\HistoricApp.csprojResolveAssemblyReference.cache
+C:\Workspace\FoodDelivery\HistoricApp\HistoricApp\obj\Debug\HistoricApp.exe
+C:\Workspace\FoodDelivery\HistoricApp\HistoricApp\obj\Debug\HistoricApp.pdb
