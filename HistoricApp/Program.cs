@@ -48,23 +48,75 @@ namespace HistoricApp
             };
 
             var grouped = myExtract.GroupBy(i => i.Entry.EntryId);
+            
             foreach (var group in grouped)
             {
-                Console.WriteLine("Entry Number" + group.Key);
-                Console.WriteLine("Creation Date" + group.Select(g => g.Entry.DateCreated).FirstOrDefault());
+                var originalEntry = group.FirstOrDefault(i => i.Entry.DateUpdated == null).Entry;
+                var originalUser = group.FirstOrDefault(i => i.User.UserId == originalEntry.HeaderId).User;
+                var originalDepartment =
+                    group.FirstOrDefault(i => i.Department.DepartmentId == originalEntry.HeaderId).Department;
+                var EntryHistory = new HistoryViewModel()
+                {
+                    DateCreated = originalEntry.DateCreated,
+                    CreatedById = originalEntry.CreatedById
+                };
 
-                foreach (var myEntry in group.Select(s => s.Entry))
+                var modifications = new List<ModificationViewModel>();
+                foreach (var myEntry in group.Select(s => s.Entry).OrderBy(s => s.HeaderId).Skip(1))
                 {
                     var myUser = group.FirstOrDefault(u => u.User.UserId == myEntry.HeaderId).User;
                     var myDepartment = group.FirstOrDefault(u => u.Department.DepartmentId == myEntry.HeaderId).Department;
-                    Console.WriteLine(myEntry.HeaderId);
-                    Console.WriteLine(myUser.UserId + " - " + myUser.FirstName + " - " + myUser.LastName);
-                    Console.WriteLine(myDepartment.DepartmentId + " - " + myDepartment.DepartmentName);
                 }
             }
             Console.ReadLine();
         }
+
+        public static Dictionary<string, string> CompareProperties<T>(T original, T modified) where T : class
+        {
+            Dictionary<string, string> modifs = new Dictionary<string, string>();
+            if (original != null && modified != null)
+            {
+                Type type = typeof (T);
+                foreach (
+                    System.Reflection.PropertyInfo pi in
+                        type.GetProperties(System.Reflection.BindingFlags.Public))
+                {
+
+                    object originalValue = type.GetProperty(pi.Name).GetValue(original,null);
+                    object modifiedValue = type.GetProperty(pi.Name).GetValue(modified, null);
+
+                    if (originalValue != modifiedValue && (originalValue == null || !modifiedValue.Equals(modifiedValue)))
+                    {
+                        modifs.Add(type.GetProperty(pi.Name).ToString(), modifiedValue.ToString());
+                    }
+
+                }
+
+            }
+            return modifs;
+
+        }
     }
+
+        
+
+    public class HistoryViewModel
+    {
+        public DateTime DateCreated { get; set; }
+        public int CreatedById { get; set; }
+        public List<ModificationViewModel> Modifications { get; set; }
+
+    }
+
+    public class ModificationViewModel
+    {
+        public DateTime DateModified { get; set; }
+        public int ModifiedById { get; set; }
+        public string ColumnModified { get; set; }
+        public string OldValue { get; set; }
+        public string NewValue { get; set; }
+    }
+
 
     public class Extract
     {
