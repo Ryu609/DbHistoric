@@ -103,20 +103,29 @@ namespace HistoricApp
                     originalUser = myUser;
                 }
 
-                Console.WriteLine(EntryHistory.EntryId);
-                Console.WriteLine(EntryHistory.DateCreated);
-                Console.WriteLine(EntryHistory.CreatedById);
-                if(EntryHistory.Modifications == null)
+                Console.WriteLine("EntryId: " + EntryHistory.EntryId);
+                Console.WriteLine("Date Created: " + EntryHistory.DateCreated);
+                Console.WriteLine("Created By: " + EntryHistory.CreatedById);
+                if (EntryHistory.Modifications == null)
+                {
+                    Console.WriteLine("<<<<<Modifications>>>>>>");
                     Console.WriteLine("No Modification made to object");
+                }
                 else
                 {
+                    var i = 1;
                     foreach (var modifs in EntryHistory.Modifications)
                     {
-                        Console.WriteLine(modifs.DateModified);
-                        Console.WriteLine(modifs.ModifiedById);
-                        Console.WriteLine(modifs.ColumnModified);
-                        Console.WriteLine(modifs.OldValue);
-                        Console.WriteLine(modifs.NewValue);
+                        
+                        Console.WriteLine("Modication: #" + i);
+                        Console.WriteLine("Modification Date: " + modifs.DateModified);
+                        Console.WriteLine("Modified By: " + modifs.ModifiedById);
+                        Console.WriteLine("Column Modified: " + modifs.ColumnModified);
+                        Console.WriteLine("Old Value: " + modifs.OldValue);
+                        Console.WriteLine("New Value: " + modifs.NewValue);
+                        Console.WriteLine("<<<<<<<<>>>>>>>>>");
+                        Console.WriteLine("");
+                        i ++;
                     }
                 }
             }
@@ -137,7 +146,7 @@ namespace HistoricApp
                     object originalValue = type.GetProperty(pi.Name).GetValue(original,null);
                     object modifiedValue = type.GetProperty(pi.Name).GetValue(modified, null);
 
-                    if (originalValue != modifiedValue || (originalValue == null ^ modifiedValue == null ))
+                    if (originalValue != modifiedValue && (originalValue == null || !originalValue.Equals(modifiedValue)))
                     {
                         modifs.Add( new Modifs()
                         {
